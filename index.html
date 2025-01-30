@@ -102,10 +102,13 @@ socket.on("send timestamp", (timestamp) => {
   let timestampElement = document.createElement("span");
   timestampElement.classList.add("timestamp");
   timestampElement.textContent = ` (${timestamp})`;
-  let lastMessage = messageArea.lastElementChild;
+  //let lastMessage = messageArea.lastElementChild;
+  messageArea.appendChild(timestampElement);
+  /* //maybe have a toggle for if the user wants to decide if they want the timestamp below or beside the message
   if (lastMessage && lastMessage.classList.contains("message")) {
     lastMessage.appendChild(timestampElement); // Append timestamp to last message
   }
+  */
 });
 
 // Load any stored messages from the cookie when the page is loaded
