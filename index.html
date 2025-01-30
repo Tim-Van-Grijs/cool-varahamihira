@@ -4,7 +4,7 @@
 <html>
   <head>
     <title>GeeksforGeeks ChatRoom</title>
-    <link rel="stylesheet" href="style.css" />
+    <!-- <link rel="stylesheet" href="style.css" />-->
   </head>
 
   <body>
@@ -22,11 +22,40 @@
     <script>
       let socket = io();
 
+      // Utility function to get cookie by name
+      function getCookie(name) {
+        let match = document.cookie.match(
+          new RegExp("(^| )" + name + "=([^;]+)")
+        );
+        return match ? match[2] : null;
+      }
+
+      // Utility function to set a cookie
+      function setCookie(name, value, days) {
+        let date = new Date();
+        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000); // Expires in 1 day
+        document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
+      }
+
+      // Display stored messages from the cookie
+      function displayStoredMessages() {
+        let storedMessages = getCookie("chatMessages");
+        if (storedMessages) {
+          let messages = JSON.parse(storedMessages);
+          messages.forEach((msg) => {
+            let chatContent = document.createElement("p");
+            chatContent.classList.add("message");
+            chatContent.textContent = msg;
+            messageArea.appendChild(chatContent);
+          });
+        }
+      }
+
       let form = document.getElementById("form");
       let myname = document.getElementById("myname");
       let message = document.getElementById("message");
       let messageArea = document.getElementById("messageArea");
-
+      //add an event listener to the form
       form.addEventListener("submit", (e) => {
         e.preventDefault();
 
@@ -49,7 +78,15 @@
         chatContent.classList.add("message");
         chatContent.textContent = chat;
         messageArea.appendChild(chatContent);
+
+        // Save chat message to cookie
+        let storedMessages = getCookie("chatMessages");
+        storedMessages = storedMessages ? JSON.parse(storedMessages) : [];
+        storedMessages.push(chat);
+        setCookie("chatMessages", JSON.stringify(storedMessages), 1); // Store for 1 day
       });
+      // Load any stored messages from the cookie when the page is loaded
+      window.onload = displayStoredMessages;
     </script>
   </body>
 </html>
