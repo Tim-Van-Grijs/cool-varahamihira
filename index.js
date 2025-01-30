@@ -19,12 +19,17 @@ const server = http.createServer((req, res) => {
 
 const io = require("socket.io")(server);
 const port = 5000;
-
+// Handle the username event
 io.on("connection", (socket) => {
   socket.on("send name", (user) => {
     io.emit("send name", user);
   });
 
+  // Handle the timestamp event
+  socket.on("send timestamp", (timestamp) => {
+    io.emit("send timestamp", timestamp); // Emit the timestamp
+  });
+  // Handle the message event
   socket.on("send message", (chat) => {
     io.emit("send message", chat);
   });

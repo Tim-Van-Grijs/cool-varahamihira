@@ -21,72 +21,96 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
       let socket = io();
-
-      // Utility function to get cookie by name
-      function getCookie(name) {
-        let match = document.cookie.match(
-          new RegExp("(^| )" + name + "=([^;]+)")
-        );
-        return match ? match[2] : null;
-      }
-
-      // Utility function to set a cookie
-      function setCookie(name, value, days) {
-        let date = new Date();
-        date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000); // Expires in 1 day
-        document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
-      }
-
-      // Display stored messages from the cookie
-      function displayStoredMessages() {
-        let storedMessages = getCookie("chatMessages");
-        if (storedMessages) {
-          let messages = JSON.parse(storedMessages);
-          messages.forEach((msg) => {
-            let chatContent = document.createElement("p");
-            chatContent.classList.add("message");
-            chatContent.textContent = msg;
-            messageArea.appendChild(chatContent);
-          });
-        }
-      }
-
       let form = document.getElementById("form");
-      let myname = document.getElementById("myname");
-      let message = document.getElementById("message");
-      let messageArea = document.getElementById("messageArea");
-      //add an event listener to the form
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
+let myname = document.getElementById("myname");
+let message = document.getElementById("message");
+let messageArea = document.getElementById("messageArea");
 
-        if (message.value) {
-          socket.emit("send name", myname.value);
-          socket.emit("send message", message.value);
-          message.value = "";
-        }
-      });
+// Utility function to get cookie by name
+function getCookie(name) {
+  let match = document.cookie.match(
+    new RegExp("(^| )" + name + "=([^;]+)")
+  );
+  return match ? match[2] : null;
+}
 
-      socket.on("send name", (username) => {
-        let name = document.createElement("p");
-        name.classList.add("message");
-        name.innerHTML = `<span class="username">${username}:</span>`;
-        messageArea.appendChild(name);
-      });
+// Utility function to set a cookie
+function setCookie(name, value, days) {
+  let date = new Date();
+  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000); // Expires in 1 day
+  document.cookie = `${name}=${value}; expires=${date.toUTCString()}; path=/`;
+}
 
-      socket.on("send message", (chat) => {
-        let chatContent = document.createElement("p");
-        chatContent.classList.add("message");
-        chatContent.textContent = chat;
-        messageArea.appendChild(chatContent);
+// Display stored messages from the cookie
+function displayStoredMessages() {
+  let storedMessages = getCookie("chatMessages");
+  if (storedMessages) {
+    let messages = JSON.parse(storedMessages);
+    messages.forEach((msg) => {
+      let chatContent = document.createElement("p");
+      chatContent.classList.add("message");
+      chatContent.innerHTML = `<span class="username">${msg.user}:</span> ${msg.message} 
+                               <span class="timestamp">(${msg.timestamp})</span>`;
+      messageArea.appendChild(chatContent);
+    });
+  }
+}
 
-        // Save chat message to cookie
-        let storedMessages = getCookie("chatMessages");
-        storedMessages = storedMessages ? JSON.parse(storedMessages) : [];
-        storedMessages.push(chat);
-        setCookie("chatMessages", JSON.stringify(storedMessages), 1); // Store for 1 day
-      });
-      // Load any stored messages from the cookie when the page is loaded
-      window.onload = displayStoredMessages;
+//add an event listener to the form
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  let timestamp = new Date().toLocaleString(); // Get the current timestamp
+
+  if (message.value) {
+    // Create chatData object and emit it
+    let chatData = {
+      user: myname.value,
+      message: message.value,
+      timestamp: timestamp,
+    };
+
+    socket.emit("send name", myname.value);
+    socket.emit("send message", message.value);
+    socket.emit("send timestamp", timestamp);
+
+    // Save chatData in the cookie
+    let storedMessages = getCookie("chatMessages");
+    storedMessages = storedMessages ? JSON.parse(storedMessages) : [];
+    storedMessages.push(chatData);
+    setCookie("chatMessages", JSON.stringify(storedMessages), 1); // Store for 1 day
+
+    message.value = "";
+  }
+});
+
+// Emit the message and timestamp to the client
+socket.on("send name", (username) => {
+  let name = document.createElement("p");
+  name.classList.add("message");
+  name.innerHTML = `<span class="username">${username}:</span>`;
+  messageArea.appendChild(name);
+});
+
+socket.on("send message", (message) => {
+  let messageContent = document.createElement("p");
+  messageContent.classList.add("message");
+  messageContent.textContent = message;
+  messageArea.appendChild(messageContent);
+});
+
+socket.on("send timestamp", (timestamp) => {
+  let timestampElement = document.createElement("span");
+  timestampElement.classList.add("timestamp");
+  timestampElement.textContent = ` (${timestamp})`;
+  let lastMessage = messageArea.lastElementChild;
+  if (lastMessage && lastMessage.classList.contains("message")) {
+    lastMessage.appendChild(timestampElement); // Append timestamp to last message
+  }
+});
+
+// Load any stored messages from the cookie when the page is loaded
+window.onload = displayStoredMessages;
+
     </script>
   </body>
 </html>
