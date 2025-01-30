@@ -10,6 +10,7 @@
   "author": "Ives van Hoorne",
   "license": "MIT",
   "dependencies": {
+    "mongoose": "^8.9.5",
     "socket.io": "^4.8.1"
   }
 }
