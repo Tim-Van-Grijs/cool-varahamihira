@@ -1,7 +1,6 @@
-//index.js file - Server Side Code
-
 const http = require("http");
 const fs = require("fs");
+const socketIO = require("socket.io");
 
 const server = http.createServer((req, res) => {
   if (req.url === "/") {
@@ -17,24 +16,30 @@ const server = http.createServer((req, res) => {
   }
 });
 
-const io = require("socket.io")(server);
+//Fix: Enable CORS for WebSockets
+const io = socketIO(server, {
+  cors: {
+    origin: "*", // Allow requests from anywhere (you can restrict this later)
+    methods: ["GET", "POST"]
+  }
+});
+
 const port = 5000;
-// Handle the username event
+
+// Handle incoming socket connections
 io.on("connection", (socket) => {
-  socket.on("send name", (user) => {
-    io.emit("send name", user);
+  console.log("A user connected");
+
+  socket.on("send message", (chatData) => {
+    io.emit("send message", chatData);
   });
 
-  // Handle the timestamp event
-  socket.on("send timestamp", (timestamp) => {
-    io.emit("send timestamp", timestamp); // Emit the timestamp
-  });
-  // Handle the message event
-  socket.on("send message", (chat) => {
-    io.emit("send message", chat);
+  socket.on("disconnect", () => {
+    console.log("A user disconnected");
   });
 });
 
-server.listen(port, () => {
-  console.log(`Server is listening at the port: ${port}`);
+// ✅ Fix: Bind to "0.0.0.0" to work with ngrok
+server.listen(port, "0.0.0.0", () => {
+  console.log(`Server is listening on port ${port}`);
 });

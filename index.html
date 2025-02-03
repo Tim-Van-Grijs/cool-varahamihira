@@ -17,7 +17,31 @@
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
-      let socket = io();
+      let socket = io("https://adequately-guiding-katydid.ngrok-free.app", {
+        transports: ["websocket"], // Force WebSockets only
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000
+      });
+
+      // Debug WebSocket connection
+      socket.on("connect", () => {
+        console.log("✅ Connected to WebSocket server");
+      });
+
+      socket.on("disconnect", () => {
+        console.log("⚠ WebSocket disconnected");
+      });
+
+      socket.on("connect_error", (err) => {
+        console.error("❌ Connection Error:", err);
+      });
+
+      socket.on("reconnect", () => {
+        console.log("🔄 Reconnected to WebSocket server");
+      });
+
+
       let form = document.getElementById("form");
       let myname = document.getElementById("myname");
       let message = document.getElementById("message");
@@ -46,8 +70,9 @@
           messages.forEach((msg) => {
             let chatContent = document.createElement("p");
             chatContent.classList.add("message");
-            chatContent.innerHTML = `<span class="username">${msg.user}:</span> ${msg.message} 
-                                     <span class="timestamp">(${msg.timestamp})</span>`;
+            chatContent.innerHTML = 
+            `<span class="username">${msg.user}:</span> ${msg.message} 
+            <span class="timestamp">(${msg.timestamp})</span>`;
             messageArea.appendChild(chatContent);
           });
         }
@@ -66,10 +91,12 @@
             timestamp: timestamp,
           };
 
-          socket.emit("send name", myname.value);
+          /*socket.emit("send name", myname.value);
           socket.emit("send message", message.value);
-          socket.emit("send timestamp", timestamp);
-
+          socket.emit("send timestamp", timestamp);*/
+          
+          // Emit the chatData to the server
+          socket.emit("send message", chatData);
           // Save chatData in the cookie
           let storedMessages = getCookie("chatMessages");
           storedMessages = storedMessages ? JSON.parse(storedMessages) : [];
@@ -85,27 +112,49 @@
       });
 
       // Emit the message and timestamp to the client
+      /*
       socket.on("send name", (username) => {
         let name = document.createElement("p");
         name.classList.add("message");
         name.innerHTML = `<span class="username">${username}:</span>`;
         messageArea.appendChild(name);
       });
+*/
+      // Listen for incoming messages from the server
+      socket.on("send message", (chatData) => {
+        let { user, message, timestamp } = chatData;
 
-      socket.on("send message", (message) => {
         let messageContent = document.createElement("p");
         messageContent.classList.add("message");
-        messageContent.textContent = message;
+        messageContent.innerHTML = 
+          `<span class="username">${user}:</span> ${message} 
+          <span class="timestamp">(${timestamp})</span>`;
+        
         messageArea.appendChild(messageContent);
-      });
 
+        // Store received messages in the cookie
+        let storedMessages = getCookie("chatMessages");
+        storedMessages = storedMessages ? JSON.parse(storedMessages) : [];
+
+        storedMessages.push({ user, message, timestamp });
+
+        // Limit stored messages to 100
+        if (storedMessages.length > 100) {
+          storedMessages.shift();
+        }
+        
+      setCookie("chatMessages", JSON.stringify(storedMessages), 1);
+    });
+
+      
+      /*
       socket.on("send timestamp", (timestamp) => {
         let timestampElement = document.createElement("span");
         timestampElement.classList.add("timestamp");
         timestampElement.textContent = ` (${timestamp})`;
         messageArea.appendChild(timestampElement);
       });
-
+      */
       // Load any stored messages from the cookie when the page is loaded
       window.onload = displayStoredMessages;
     </script>
