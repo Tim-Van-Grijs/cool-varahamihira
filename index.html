@@ -66,8 +66,8 @@
             let chatContent = document.createElement("p");
             chatContent.classList.add("message");
             chatContent.innerHTML = 
-            `<span class="username">${msg.user}:</span> ${msg.message} 
-            <span class="timestamp">(${msg.timestamp})</span>`;
+              `<span class="username">${msg.user}:</span> ${msg.message} 
+              <span class="timestamp">(${msg.timestamp})</span>`;
             messageArea.appendChild(chatContent);
           });
         }
@@ -113,8 +113,8 @@
         if (storedMessages.length > 100) {
           storedMessages.shift();
         }
-      setCookie("chatMessages", JSON.stringify(storedMessages), 1);
-    });
+        setCookie("chatMessages", JSON.stringify(storedMessages), 1);
+      });
       // Load any stored messages from the cookie when the page is loaded
       window.onload = displayStoredMessages;
     </script>
