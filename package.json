@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "stop": "nodemon stop",
-    "restart": "node restart",
-    "reset": "nodemon reset",
+    "start": "node index.js & ngrok http --domain=adequately-guiding-katydid.ngrok-free.app 5000", 
+    "stop": "npm run stop:unix || npm run stop:windows",
+    "stop:unix": "kill $(lsof -t -i:5000) && kill $(pgrep ngrok)",
+    "stop:windows": "taskkill /F /IM node.exe && taskkill /F /IM ngrok.exe", 
+    "restart": "npm stop && sleep 5 && npm start", 
+    "reset": "node reset",
     "logs": "nodemon logs"
-    
   },
   "keywords": [],
   "author": "Ives van Hoorne",
