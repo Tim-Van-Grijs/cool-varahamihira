@@ -18,7 +18,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script>
       let socket = io("https://adequately-guiding-katydid.ngrok-free.app", {
-        transports: ["websocket"], // Force WebSockets only
+        transports: ["websocket"],
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000
@@ -41,21 +41,16 @@
         console.log("🔄 Reconnected to WebSocket server");
       });
 
-
       let form = document.getElementById("form");
       let myname = document.getElementById("myname");
       let message = document.getElementById("message");
       let messageArea = document.getElementById("messageArea");
 
-      // Utility function to get cookie by name
       function getCookie(name) {
-        let match = document.cookie.match(
-          new RegExp("(^| )" + name + "=([^;]+)")
-        );
+        let match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
         return match ? match[2] : null;
       }
 
-      // Utility function to set a cookie
       function setCookie(name, value, days) {
         let date = new Date();
         date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000); // Expires in 1 day
@@ -78,83 +73,48 @@
         }
       }
 
-      // Add an event listener to the form
       form.addEventListener("submit", (e) => {
         e.preventDefault();
-        let timestamp = new Date().toLocaleString(); // Get the current timestamp
-
+        let timestamp = new Date().toLocaleString();
         if (message.value) {
-          // Create chatData object and emit it
           let chatData = {
             user: myname.value,
             message: message.value,
             timestamp: timestamp,
           };
-
-          /*socket.emit("send name", myname.value);
-          socket.emit("send message", message.value);
-          socket.emit("send timestamp", timestamp);*/
-          
           // Emit the chatData to the server
           socket.emit("send message", chatData);
           // Save chatData in the cookie
           let storedMessages = getCookie("chatMessages");
           storedMessages = storedMessages ? JSON.parse(storedMessages) : [];
           storedMessages.push(chatData);
-          // You may want to limit the number of messages stored (e.g., max 100 messages)
           if (storedMessages.length > 100) {
-            storedMessages.shift(); // Remove the first message to keep the array size manageable
+            storedMessages.shift(); // Keep the array size manageable
           }
           setCookie("chatMessages", JSON.stringify(storedMessages), 1); // Store for 1 day
 
           message.value = "";
         }
       });
-
-      // Emit the message and timestamp to the client
-      /*
-      socket.on("send name", (username) => {
-        let name = document.createElement("p");
-        name.classList.add("message");
-        name.innerHTML = `<span class="username">${username}:</span>`;
-        messageArea.appendChild(name);
-      });
-*/
       // Listen for incoming messages from the server
       socket.on("send message", (chatData) => {
         let { user, message, timestamp } = chatData;
-
         let messageContent = document.createElement("p");
         messageContent.classList.add("message");
         messageContent.innerHTML = 
           `<span class="username">${user}:</span> ${message} 
           <span class="timestamp">(${timestamp})</span>`;
-        
         messageArea.appendChild(messageContent);
 
-        // Store received messages in the cookie
+        // Store received messages in the cookie and limit messages count to 100
         let storedMessages = getCookie("chatMessages");
         storedMessages = storedMessages ? JSON.parse(storedMessages) : [];
-
         storedMessages.push({ user, message, timestamp });
-
-        // Limit stored messages to 100
         if (storedMessages.length > 100) {
           storedMessages.shift();
         }
-        
       setCookie("chatMessages", JSON.stringify(storedMessages), 1);
     });
-
-      
-      /*
-      socket.on("send timestamp", (timestamp) => {
-        let timestampElement = document.createElement("span");
-        timestampElement.classList.add("timestamp");
-        timestampElement.textContent = ` (${timestamp})`;
-        messageArea.appendChild(timestampElement);
-      });
-      */
       // Load any stored messages from the cookie when the page is loaded
       window.onload = displayStoredMessages;
     </script>
