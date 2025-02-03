@@ -9,7 +9,7 @@
     "stop": "npm run stop:unix || npm run stop:windows",
     "stop:unix": "kill $(lsof -t -i:5000) && kill $(pgrep ngrok)",
     "stop:windows": "taskkill /F /IM node.exe && taskkill /F /IM ngrok.exe",
-    "restart": "npm stop && sleep 5 && npm start",
+    "restart": "npm stop && sleep 1 && npm start",
     "reset": "node reset",
     "logs": "nodemon logs"
   },
