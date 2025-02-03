@@ -16,10 +16,10 @@ const server = http.createServer((req, res) => {
   }
 });
 
-//Fix: Enable CORS for WebSockets
+//Enable CORS for WebSockets
 const io = socketIO(server, {
   cors: {
-    origin: "*", // Allow requests from anywhere (you can restrict this later)
+    origin: "*", // Allow requests from anywhere
     methods: ["GET", "POST"]
   }
 });
@@ -39,7 +39,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// ✅ Fix: Bind to "0.0.0.0" to work with ngrok
 server.listen(port, "0.0.0.0", () => {
   console.log(`Server is listening on port ${port}`);
 });
